@@ -1,0 +1,48 @@
+import os
+import sys
+
+def count_total_files(start_path="C:\\"):
+    """Bilgisayardaki toplam dosya sayısını tahmini olarak hesaplar."""
+    total_files = 0
+    for root, _, filenames in os.walk(start_path, followlinks=True):
+        total_files += len(filenames)
+    return total_files
+
+def list_all_files_by_size(start_path="C:\\"):
+    print("Toplam dosya sayısı hesaplanıyor... (Bu biraz sürebilir)")
+    total_files = count_total_files(start_path)
+    print(f"Yaklaşık {total_files} dosya taranacak.\n")
+
+    files = []
+    scanned_files = 0
+
+    print("Tarama devam ediyor...\n")
+
+    for root, _, filenames in os.walk(start_path, followlinks=True):
+        for filename in filenames:
+            file_path = os.path.join(root, filename)
+            try:
+                size = os.path.getsize(file_path)
+                files.append((file_path, size))
+                scanned_files += 1
+
+                # Yüzdelik hesaplama ve ekrana yazdırma
+                if total_files > 0:
+                    progress = (scanned_files / total_files) * 100
+                    sys.stdout.write(f"\rTarama ilerlemesi: %{progress:.2f}")
+                    sys.stdout.flush()
+
+            except (PermissionError, FileNotFoundError):
+                continue
+
+    print("\n\nTarama tamamlandı! En büyük 50 dosya:")
+    files.sort(key=lambda x: x[1], reverse=True)
+
+    for i, (file, size) in enumerate(files[:50], 1):  # İlk 50 büyük dosya
+        size_str = f"{size / (1024 ** 2):.2f} MB" if size < 1024**3 else f"{size / (1024 ** 3):.2f} GB"
+        print(f"{i}. {size_str} - {file}")
+
+    input("\nTarama tamamlandı! Çıkmak için Enter'a basın...")  # Programın kapanmasını engeller
+
+# Kullanım
+list_all_files_by_size()
